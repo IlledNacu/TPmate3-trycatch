@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import numpy as np
 
-Data = pd.read_csv('Downloads/Titanic.csv')
+Data = pd.read_csv('Titanic.csv')
 nombre = "^" + input().capitalize() + ".*"
 Data = Data[Data['Name'].str.match(nombre)==True]
 print(Data)
