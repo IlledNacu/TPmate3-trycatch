@@ -82,9 +82,9 @@ def validar_busqueda(apellido,data_a_validar):
             raise ValueError(f"No se encontraron registros para el apellido {apellido} proporcionado")
 
 def retornar_categoria_elegida(opcion):
-    opciones_disponibles = {1:["Sex",["male", "female"]],
-                            2:["Pclass",["1", "2", "3"]],
-                            3:["Survived",["1", "0"]]
+    opciones_disponibles = {1:["Género",["masculino", "femenino"]],
+                            2:["Clase",[1, 2, 3]],
+                            3:["Supervivencia",["Sí", "No"]]
                         }
     
     if opcion in opciones_disponibles.keys():
@@ -97,7 +97,7 @@ def generar_grafo_por_categoria(apellido, data, opcion):
         apellido = "^" + re.escape(apellido.capitalize()) + ".*"
         
         #Filtrar el DataFrame para incluir solo las filas que coinciden con el nombre dado
-        data_filtrada = data[data['Name'].str.match(apellido)]
+        data_filtrada = data[data['Nombre'].str.match(apellido)]
 
         #validar la busqueda
         validar_busqueda(apellido,data_filtrada)
@@ -110,7 +110,7 @@ def generar_grafo_por_categoria(apellido, data, opcion):
         
         #Agregar nodos y bordes al grafo
         for i in range(0, len(data_filtrada)):
-            DG.add_edge(data_filtrada.iloc[i]['Name'], data_filtrada.iloc[i][categoria])
+            DG.add_edge(data_filtrada.iloc[i]['Nombre'], data_filtrada.iloc[i][categoria])
         
         #Definir colores para los nodos
         
@@ -125,7 +125,33 @@ def generar_grafo_por_categoria(apellido, data, opcion):
     except Exception as e:
         print(f"Error:{e}")
 
+def por_multifuncion(apellido, Data):
 
+    apellido = "^" + re.escape(apellido.capitalize()) + ".*"
+    data_filtrada = Data[Data['Nombre'].str.match(apellido)]
+    validar_busqueda(apellido,data_filtrada)
+
+    fig, ax = plt.subplots(figsize =(12,12))
+
+    opciones = input("Seleccione la o las variables que desea incluir (escriba cada número separado por un espacio):\n1. Por género\n2. Por clase\n3. Por supervivencia")
+    
+
+    DG = nx.DiGraph()
+    for i in range(0, len(data_filtrada)):
+        if re.search("1", opciones):
+            DG.add_edge(data_filtrada.iloc[i]['Nombre'], data_filtrada.iloc[i]['Género'])
+        if re.search("2", opciones): 
+            DG.add_edge(data_filtrada.iloc[i]['Nombre'], data_filtrada.iloc[i]['Clase'])
+        if re.search("3", opciones):  
+            DG.add_edge(data_filtrada.iloc[i]['Nombre'], data_filtrada.iloc[i]['Supervivencia'])
+        i = i + 1 
+    d = dict(DG.degree)
+    clase = [1, 2, 3]
+    genero = ["masculino", "femenino"]
+    supervivencia = ["Sí", "No"]
+    pos = nx.spring_layout(DG, k=3, scale=2.0)
+    nx.draw(DG,pos, with_labels=True, node_color= ['red' if node in supervivencia else 'green' if node in clase else 'yellow' if node in genero else 'lightblue' for node in DG.nodes()])
+    plt.show()
                                             # MENÚ DE USO
 
 # Para el usuario
@@ -192,15 +218,17 @@ while acceso_menu:
             Data = pd.read_csv('Titanic.csv')
             apellido = input('Ingrese el apellido que desea buscar:')
 
-            menu = int(input('Elija el parámetro de búsqueda (número de la opción):\n1. Por género\n2. Por clase\n3. Por supervivencia\n4. Reiniciar la búsqueda\n0. SALIR'))
+            menu = int(input('Elija el parámetro de búsqueda (número de la opción):\n1. Por género\n2. Por clase\n3. Por supervivencia\n4. Por multifuncion\n5. Reiniciar la búsqueda\n0. SALIR'))
 
             if(menu == 1):
-                generar_grafo_por_categoria(apellido, Data, 1)
+                generar_grafo_por_categoria(apellido, df, 1)
             elif(menu == 2):
-                generar_grafo_por_categoria(apellido, Data, 2)
+                generar_grafo_por_categoria(apellido, df, 2)
             elif(menu == 3):
-                generar_grafo_por_categoria(apellido, Data, 3)
+                generar_grafo_por_categoria(apellido, df, 3)
             elif(menu == 4):
+                por_multifuncion(apellido, df)
+            elif(menu == 5):
                 print('Reiniciando búsqueda')
                 menu_acceso = True
             elif(menu == 0):
